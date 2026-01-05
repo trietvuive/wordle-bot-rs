@@ -1,0 +1,33 @@
+
+╔═══════════════════════════════════════════════════════════╗
+║              🟩 OPTIMAL WORDLE SOLVER 🟩                  ║
+║     Using Maximum Entropy Information Theory              ║
+╚═══════════════════════════════════════════════════════════╝
+
+Commands:
+  suggest [n]    - Get the best n guesses (default: 1)
+  top [n]        - Show top N guesses (default: 5)
+  feedback <word> <pattern> - Apply feedback (e.g., 'feedback crane gybbb')
+  remaining      - Show remaining possible words
+  solve <word>   - Auto-solve for a target word
+  benchmark      - Run benchmark on all words
+  hard           - Toggle hard mode on/off
+  reset          - Reset to initial state
+  help           - Show this help
+  quit           - Exit the program
+
+Feedback format:
+  g = green (correct position)
+  y = yellow (wrong position)
+  b = black/gray (not in word)
+
+Hard mode:
+  When enabled, guesses must use all revealed hints.
+  Green letters must stay in position, yellow letters must be used.
+
+Example session:
+  > suggest
+  Best guess: TARES (entropy: 6.29 bits)
+  > feedback tares gybbb
+  Applied feedback: 🟩🟨⬛⬛⬛
+  Remaining possibilities: 42
