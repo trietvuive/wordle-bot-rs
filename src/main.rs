@@ -184,19 +184,23 @@ fn run_interactive() {
                         if pattern.is_win() {
                             println!();
                             println!("🎉 Congratulations! You solved it!");
-                            println!();
                         } else if new_count == 0 {
                             println!();
                             println!("⚠️  No words match this feedback pattern!");
                             println!("This might indicate an error. Use 'reset' to start over.");
+                        } else {
+                            if new_count <= 10 {
+                                println!();
+                                println!("Remaining words: {:?}", 
+                                    solver.possible_answers().iter()
+                                        .map(|s| s.to_uppercase())
+                                        .collect::<Vec<_>>());
+                            }
                             println!();
-                        } else if new_count <= 10 {
-                            println!();
-                            println!("Remaining words: {:?}", 
-                                solver.possible_answers().iter()
-                                    .map(|s| s.to_uppercase())
-                                    .collect::<Vec<_>>());
-                            println!();
+                            if let Some(analysis) = solver.find_best_guess() {
+                                println!("→ Best guess: {} (entropy: {:.2} bits)", 
+                                    analysis.word.to_uppercase(), analysis.entropy);
+                            }
                         }
                         println!();
                     }
