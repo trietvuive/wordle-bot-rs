@@ -1,0 +1,26 @@
+[package]
+name = "wordle-bot"
+version = "1.0.0"
+edition = "2021"
+authors = ["Wordle Bot"]
+description = "A multithreaded optimal Wordle solver using entropy-based information theory"
+license = "MIT"
+
+[dependencies]
+rayon = "1.10"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bin]]
+name = "wordle-bot"
+path = "src/main.rs"
+
+[lib]
+name = "wordle_bot"
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+
