@@ -3,18 +3,61 @@
 //! Interactive command-line interface for the optimal Wordle solver.
 
 use std::io::{self, BufRead, Write};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::thread::{self, JoinHandle};
+use std::time::Duration;
 use wordle_bot::{load_dictionary, FeedbackPattern, WordleSolver};
 
-const HELP_TEXT: &str = include_str!("help.txt");
+const BANNER_TEXT: &str = include_str!("text/banner.txt");
+const USAGE_TEXT: &str = include_str!("text/usage.txt");
+
+struct Spinner {
+    running: Arc<AtomicBool>,
+    handle: Option<JoinHandle<()>>,
+}
+
+impl Spinner {
+    fn new(message: &'static str) -> Self {
+        let running = Arc::new(AtomicBool::new(true));
+        let running_clone = running.clone();
+        let handle = thread::spawn(move || {
+            let frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+            let mut i = 0;
+            while running_clone.load(Ordering::Relaxed) {
+                print!("\r{} {}", frames[i % frames.len()], message);
+                io::stdout().flush().unwrap();
+                thread::sleep(Duration::from_millis(80));
+                i += 1;
+            }
+            print!("\r{}\r", " ".repeat(message.len() + 3));
+            io::stdout().flush().unwrap();
+        });
+        Self { running, handle: Some(handle) }
+    }
+
+    fn stop(mut self) {
+        self.running.store(false, Ordering::Relaxed);
+        if let Some(handle) = self.handle.take() {
+            handle.join().unwrap();
+        }
+    }
+}
+
+impl Drop for Spinner {
+    fn drop(&mut self) {
+        self.running.store(false, Ordering::Relaxed);
+    }
+}
 
 fn print_banner() {
-    for line in HELP_TEXT.lines().take(6) {
+    for line in BANNER_TEXT.lines().take(6) {
         println!("{}", line);
     }
 }
 
 fn print_help() {
-    println!("{}", HELP_TEXT);
+    println!("{}", BANNER_TEXT);
 }
 
 fn run_interactive() {
@@ -55,44 +98,27 @@ fn run_interactive() {
                 break;
             }
             "suggest" | "s" | "best" => {
-                let n: usize = parts.get(1).and_then(|s| s.parse().ok()).unwrap_or(1);
-                let guesses = solver.find_best_guesses(n);
-
-                if guesses.is_empty() {
-                    println!("No possible words remaining. Use 'reset' to start over.");
-                } else if guesses.len() == 1 {
-                    let analysis = &guesses[0];
-                    println!();
-                    println!("Best guess: {} ", analysis.word.to_uppercase());
-                    println!("  Entropy: {:.3} bits", analysis.entropy);
-                    println!("  Expected remaining: {:.1} words", analysis.expected_remaining);
-                    if analysis.is_possible_answer {
-                        println!("  ✓ This word is a possible answer");
-                    } else {
-                        println!("  ✗ This word is NOT a possible answer");
+                match solver.find_best_guess() {
+                    Some(analysis) => {
+                        println!();
+                        println!("Best guess: {} ", analysis.word.to_uppercase());
+                        println!("  Entropy: {:.3} bits", analysis.entropy);
+                        println!("  Expected remaining: {:.1} words", analysis.expected_remaining);
+                        if analysis.is_possible_answer {
+                            println!("  ✓ This word is a possible answer");
+                        } else {
+                            println!("  ✗ This word is NOT a possible answer");
+                        }
+                        println!();
+                        println!("Remaining possibilities: {}", solver.remaining_count());
+                        if solver.is_hard_mode() {
+                            println!("Mode: HARD");
+                        }
+                        println!();
                     }
-                    println!();
-                    println!("Remaining possibilities: {}", solver.remaining_count());
-                    if solver.is_hard_mode() {
-                        println!("Mode: HARD");
+                    None => {
+                        println!("No possible words remaining. Use 'reset' to start over.");
                     }
-                    println!();
-                } else {
-                    println!();
-                    println!("Top {} guesses:", guesses.len());
-                    println!("{:>4} {:>8} {:>8} {:>12} Possible?", "#", "Word", "Entropy", "Exp. Remain");
-                    println!("{}", "-".repeat(50));
-                    for (i, analysis) in guesses.iter().enumerate() {
-                        println!(
-                            "{:>4} {:>8} {:>8.3} {:>12.1} {}",
-                            i + 1,
-                            analysis.word.to_uppercase(),
-                            analysis.entropy,
-                            analysis.expected_remaining,
-                            if analysis.is_possible_answer { "✓" } else { "" }
-                        );
-                    }
-                    println!();
                 }
             }
             "hard" | "hardmode" => {
@@ -237,12 +263,12 @@ fn run_interactive() {
             "benchmark" | "bench" => {
                 println!();
                 println!("Running benchmark on all {} words...", solver.all_words().len());
-                println!("This may take a minute...");
-                println!();
 
+                let spinner = Spinner::new("Computing...");
                 let start = std::time::Instant::now();
                 let distribution = solver.benchmark_guess_distribution();
                 let elapsed = start.elapsed();
+                spinner.stop();
 
                 let total: usize = distribution.iter().map(|(_, c)| c).sum();
                 let total_guesses: usize = distribution.iter().map(|(g, c)| g * c).sum();
@@ -291,14 +317,7 @@ fn main() {
     if args.len() > 1 {
         match args[1].as_str() {
             "--help" | "-h" => {
-                println!("Wordle Bot - Optimal Wordle Solver");
-                println!();
-                println!("Usage:");
-                println!("  wordle-bot              Run interactive mode");
-                println!("  wordle-bot solve <word> Solve for a specific word");
-                println!("  wordle-bot benchmark    Run benchmark on all words");
-                println!("  wordle-bot suggest      Get the best opening guess");
-                println!();
+                println!("{}", USAGE_TEXT);
             }
             "solve" => {
                 if args.len() < 3 {
@@ -335,10 +354,11 @@ fn main() {
                 let words = load_dictionary();
                 let solver = WordleSolver::new(words);
 
-                println!("Running benchmark...");
+                let spinner = Spinner::new("Running benchmark...");
                 let start = std::time::Instant::now();
                 let avg = solver.benchmark_average_guesses();
                 let elapsed = start.elapsed();
+                spinner.stop();
 
                 println!("Average guesses: {:.3}", avg);
                 println!("Time: {:.2?}", elapsed);

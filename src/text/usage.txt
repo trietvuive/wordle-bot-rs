@@ -1,0 +1,8 @@
+Wordle Bot - Optimal Wordle Solver
+
+Usage:
+  wordle-bot              Run interactive mode
+  wordle-bot solve <word> Solve for a specific word
+  wordle-bot benchmark    Run benchmark on all words
+  wordle-bot suggest      Get the best opening guess
+

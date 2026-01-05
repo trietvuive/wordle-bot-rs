@@ -5,7 +5,7 @@
 ╚═══════════════════════════════════════════════════════════╝
 
 Commands:
-  suggest [n]    - Get the best n guesses (default: 1)
+  suggest        - Get the best guess for current state
   top [n]        - Show top N guesses (default: 5)
   feedback <word> <pattern> - Apply feedback (e.g., 'feedback crane gybbb')
   remaining      - Show remaining possible words
@@ -31,3 +31,4 @@ Example session:
   > feedback tares gybbb
   Applied feedback: 🟩🟨⬛⬛⬛
   Remaining possibilities: 42
+
