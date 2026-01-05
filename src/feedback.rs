@@ -148,3 +148,6 @@ impl std::fmt::Display for FeedbackPattern {
         write!(f, "{}", self.to_emoji_string())
     }
 }
+#[cfg(test)]
+#[path = "feedback_tests.rs"]
+mod tests;
