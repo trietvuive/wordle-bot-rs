@@ -265,12 +265,13 @@ fn run_interactive() {
                 solver.reset();
             }
             "benchmark" | "bench" => {
+                let fresh_solver = WordleSolver::new(solver.all_words().to_vec());
                 println!();
-                println!("Running benchmark on all {} words...", solver.all_words().len());
+                println!("Running benchmark on all {} words...", fresh_solver.all_words().len());
 
                 let spinner = Spinner::new("Computing...");
                 let start = std::time::Instant::now();
-                let distribution = solver.benchmark_guess_distribution();
+                let distribution = fresh_solver.benchmark_guess_distribution();
                 let elapsed = start.elapsed();
                 spinner.stop();
 
