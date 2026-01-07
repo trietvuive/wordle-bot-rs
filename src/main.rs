@@ -140,16 +140,16 @@ fn run_interactive() {
                 } else {
                     println!();
                     println!("Top {} guesses:", top.len());
-                    println!("{:>4} {:>8} {:>8} {:>12} Possible?", "#", "Word", "Entropy", "Exp. Remain");
+                    println!("{:>4} {:>8} {:>8} {:>12} Possible?", "#", "Word", "Entropy", "Expected Remaining");
                     println!("{}", "-".repeat(50));
                     for (i, analysis) in top.iter().enumerate() {
                         println!(
-                            "{:>4} {:>8} {:>8.3} {:>12.1} {}",
+                            "{:>4} {:>8} {:>8.3} {:>10.3} {:>10}",
                             i + 1,
                             analysis.word.to_uppercase(),
                             analysis.entropy,
                             analysis.expected_remaining,
-                            if analysis.is_possible_answer { "✓" } else { "" }
+                            if analysis.is_possible_answer { "Y" } else { "" }
                         );
                     }
                     println!();
