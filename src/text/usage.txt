@@ -5,4 +5,3 @@ Usage:
   wordle-bot solve <word> Solve for a specific word
   wordle-bot benchmark    Run benchmark on all words
   wordle-bot suggest      Get the best opening guess
-
