@@ -105,9 +105,9 @@ fn run_interactive() {
                         println!("  Entropy: {:.3} bits", analysis.entropy);
                         println!("  Expected remaining: {:.1} words", analysis.expected_remaining);
                         if analysis.is_possible_answer {
-                            println!("  ✓ This word is a possible answer");
+                            println!("  [Y] This word is a possible answer");
                         } else {
-                            println!("  ✗ This word is NOT a possible answer");
+                            println!("  [N] This word is NOT a possible answer");
                         }
                         println!();
                         println!("Remaining possibilities: {}", solver.remaining_count());
@@ -175,7 +175,7 @@ fn run_interactive() {
                         println!("Guess: {}", word.to_uppercase());
                         println!("Feedback: {}", pattern);
                         println!(
-                            "Eliminated {} words ({} → {})",
+                            "Eliminated {} words ({} -> {})",
                             prev_count - new_count,
                             prev_count,
                             new_count
@@ -183,10 +183,10 @@ fn run_interactive() {
 
                         if pattern.is_win() {
                             println!();
-                            println!("🎉 Congratulations! You solved it!");
+                            println!("Congratulations! You solved it!");
                         } else if new_count == 0 {
                             println!();
-                            println!("⚠️  No words match this feedback pattern!");
+                            println!("Warning: No words match this feedback pattern!");
                             println!("This might indicate an error. Use 'reset' to start over.");
                         } else {
                             if new_count <= 10 {
@@ -198,7 +198,7 @@ fn run_interactive() {
                             }
                             println!();
                             if let Some(analysis) = solver.find_best_guess() {
-                                println!("→ Best guess: {} (entropy: {:.2} bits)", 
+                                println!("-> Best guess: {} (entropy: {:.2} bits)", 
                                     analysis.word.to_uppercase(), analysis.entropy);
                             }
                         }
@@ -246,7 +246,7 @@ fn run_interactive() {
 
                 for (i, (guess, pattern)) in guesses.iter().enumerate() {
                     println!(
-                        "Guess {}: {} → {}",
+                        "Guess {}: {} -> {}",
                         i + 1,
                         guess.to_uppercase(),
                         pattern
@@ -256,9 +256,9 @@ fn run_interactive() {
                 println!();
                 if let Some((_, pattern)) = guesses.last() {
                     if pattern.is_win() {
-                        println!("✓ Solved in {} guesses!", guesses.len());
+                        println!("Solved in {} guesses!", guesses.len());
                     } else {
-                        println!("✗ Failed to solve within 6 guesses.");
+                        println!("Failed to solve within 6 guesses.");
                     }
                 }
                 println!();
@@ -285,7 +285,7 @@ fn run_interactive() {
                 println!("Guess distribution:");
                 for (guesses, count) in &distribution {
                     let pct = *count as f64 / total as f64 * 100.0;
-                    let bar = "█".repeat((*count * 40 / total).max(1));
+                    let bar = "#".repeat((*count * 40 / total).max(1));
                     println!("  {} guesses: {:>5} ({:>5.1}%) {}", guesses, count, pct, bar);
                 }
                 println!();
@@ -300,7 +300,7 @@ fn run_interactive() {
                 if failures > 0 {
                     println!("Words not solved in 6 guesses: {}", failures);
                 } else {
-                    println!("✓ All words solved within 6 guesses!");
+                    println!("All words solved within 6 guesses!");
                 }
                 println!();
             }
@@ -345,7 +345,7 @@ fn main() {
                 let guesses = solver.solve_for_target(&target);
 
                 for (i, (guess, pattern)) in guesses.iter().enumerate() {
-                    println!("Guess {}: {} → {}", i + 1, guess.to_uppercase(), pattern);
+                    println!("Guess {}: {} -> {}", i + 1, guess.to_uppercase(), pattern);
                 }
 
                 println!();

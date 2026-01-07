@@ -117,4 +117,3 @@ fn test_specific_wordle_cases() {
     assert_eq!(feedbacks[3], Feedback::Present);
     assert_eq!(feedbacks[4], Feedback::Absent);
 }
-
